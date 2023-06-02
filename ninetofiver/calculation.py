@@ -1,11 +1,13 @@
 """Calculation."""
 from django.db.models import Q
 from decimal import Decimal
-from datetime import timedelta
+from datetime import timedelta, datetime
 import copy
 from ninetofiver import models
 from ninetofiver.api_v2 import serializers
 from ninetofiver.utils import AvailabilityInfo
+import logging
+logger = logging.getLogger(__name__)
 
 
 def get_availability(users, from_date, until_date, serialize=False):
@@ -108,7 +110,12 @@ def get_availability(users, from_date, until_date, serialize=False):
             # Holidays
             try:
                 if country:
-                    user_day_data['holidays'] = holiday_data[str(current_date)][country][0:]
+                    user_day_data['holidays'] = []
+                    for h in holiday_data[str(current_date)][country]:
+                        # check if holiday is on a weekend
+                        if(h.date.weekday() == 6 or h.date.weekday() == 7):
+                            continue
+                        user_day_data['holidays'].append(h)
             except KeyError:
                 pass
 
