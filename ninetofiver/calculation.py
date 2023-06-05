@@ -51,6 +51,8 @@ def get_availability(users, from_date, until_date, serialize=False):
     # Index holidays by day, then by country
     holiday_data = {}
     for holiday in holidays:
+        if(holiday.date.weekday() > 5):
+            continue
         (holiday_data
             .setdefault(str(holiday.date), {})
             .setdefault(holiday.country, [])
@@ -112,9 +114,6 @@ def get_availability(users, from_date, until_date, serialize=False):
                 if country:
                     user_day_data['holidays'] = []
                     for h in holiday_data[str(current_date)][country]:
-                        # check if holiday is on a weekend
-                        if(h.date.weekday() == 6 or h.date.weekday() == 7):
-                            continue
                         user_day_data['holidays'].append(h)
             except KeyError:
                 pass
@@ -185,6 +184,8 @@ def get_availability_info(users, from_date, until_date):
     # Index holidays by day, then by country
     holiday_data = {}
     for holiday in holidays:
+        if(holiday.date.weekday() > 5):
+            continue
         (holiday_data
             .setdefault(str(holiday.date), {})
             .setdefault(holiday.country, [])
@@ -403,6 +404,8 @@ def get_range_info(users, from_date, until_date, daily=False, detailed=False, su
     # Index holidays by day, then by country
     holiday_data = {}
     for holiday in holidays:
+        if(holiday.date.weekday() > 5):
+            continue
         (holiday_data
             .setdefault(str(holiday.date), {})
             .setdefault(holiday.country, [])
