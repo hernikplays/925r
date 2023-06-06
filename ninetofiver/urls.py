@@ -124,6 +124,7 @@ urlpatterns += [
     path('admin/ninetofiver/report/expiring_user_training_overview/', views.admin_report_expiring_user_training_overview_view, name='admin_report_expiring_user_training_overview_view'),  # noqa
     re_path(r'^admin/ninetofiver/timesheet_contract_pdf_export/(?P<user_timesheet_contract_pks>[0-9:,]+)/$', views.AdminTimesheetContractPdfExportView.as_view(), name='admin_timesheet_contract_pdf_export'),  # noqa
     path('admin/ninetofiver/report/internal_availability_overview/', views.admin_report_internal_availability_overview_view, name='admin_report_internal_availability_overview_view'),  # noqa
+    path('admin/ninetofiver/report/user_group_leave_overview', views.admin_report_user_leave_group_overview_view, name="admin_report_user_group_leave_overview"),
     # Admin
     path('admin/', admin.site.urls),
 

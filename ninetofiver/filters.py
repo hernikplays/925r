@@ -196,6 +196,39 @@ class AdminReportUserLeaveOverviewFilter(FilterSet):
         model = models.LeaveDate
         fields = {}
 
+class AdminReportUserGroupLeaveOverviewFilter(FilterSet):
+    """User leave overview for group/company admin report filter."""
+
+    group = django_filters.ModelChoiceFilter(
+        label='Group',
+        field_name="group",
+        distinct=True,
+        queryset=auth_models.Group.objects.all(),
+        widget=select2_widgets.Select2Widget,
+    )
+    company = django_filters.ModelChoiceFilter(
+        label='Company',
+        field_name="company",
+        distinct=True,
+        queryset=models.Company.objects.filter(internal=True),
+        widget=select2_widgets.Select2Widget,
+    )
+    from_date = django_filters.DateFilter(
+        label='From',
+        field_name='starts_at',
+        lookup_expr='date__gte',
+        widget=admin_widgets.AdminDateWidget(),
+    )
+    until_date = django_filters.DateFilter(
+        label='Until',
+        field_name='starts_at',
+        lookup_expr='date__lte',
+        widget=admin_widgets.AdminDateWidget(),
+    )
+
+    class Meta:
+        model = models.LeaveDate
+        fields = {}
 
 class AdminReportUserWorkRatioByUserFilter(FilterSet):
     """User work ratio admin report filter."""

@@ -12,7 +12,7 @@ from django_countries import countries
 from ninetofiver.models import Timesheet, WorkSchedule, Leave, LeaveType, LeaveDate, Company, ContractGroup,\
     ContractRole, ContractUser, ProjectContract, SupportContract, PerformanceType, ActivityPerformance, Location,\
     ConsultancyContract, ApiKey, ContractLogType, EmploymentContractType, EmploymentContract, Holiday, Whereabout, \
-    TrainingType, Invoice
+    TrainingType, Invoice, UserTraining, Training
 
 log = logging.getLogger(__name__)
 
@@ -69,6 +69,8 @@ class TestDBPupulator:
         self.perf_types = []
         self.timesheets = []
         self.training_types = []
+        self.user_trainings = []
+        self.trainings = []
         self.users = []
         self.whereabouts = []
         self.work_schedules = []
@@ -189,6 +191,7 @@ class TestDBPupulator:
                 email='test_' + str(i) + '@mail.com',
                 first_name="User" + str(i),
                 last_name="Inuit",
+                is_active=random.choice([True, True, True, False]),
             )
             usr.save()
             self.users.append(usr)
@@ -440,20 +443,36 @@ class TestDBPupulator:
         xprint(" - Whereabout:", len(self.whereabouts))
 
         for i, user in enumerate(self.users):
-            company = self.companies[i % len(self.companies)]
+            company_index = i % len(self.companies)
+            company = self.companies[company_index]
+            prev_company = self.companies[company_index - 1 if company_index > 0 else len(self.companies)-1] # grab another company so we can create an expired contract
+            
             if not company.internal:
                 continue
-
+            while not prev_company.internal:
+                company_index = company_index - 1 if company_index > 0 else len(self.companies)-1
+                prev_company = self.companies[company_index]
             ec = EmploymentContract(
                 user=user,
                 company=company,
                 employment_contract_type=self.employment_contract_type[i % len(self.employment_contract_type)],
                 work_schedule=self.work_schedules[i % len(self.work_schedules)],
-                started_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
-                ended_at=get_random_date(datetime.date(2021, 2, 2), datetime.date(2030, 1, 1)),
+                started_at=get_random_date(datetime.date(2021, 1, 2), datetime.date(2024, 1, 1)),
+                ended_at=get_random_date(datetime.date(2024, 2, 2), datetime.date(2030, 1, 1)),
             )
             ec.save()
+
+            ec_exp = EmploymentContract(
+                user=user,
+                company=prev_company,
+                employment_contract_type=self.employment_contract_type[i % len(self.employment_contract_type)],
+                work_schedule=self.work_schedules[i % len(self.work_schedules)],
+                started_at=get_random_date(datetime.date(2012, 1, 1), datetime.date(2018, 1, 1)),
+                ended_at=get_random_date(datetime.date(2018, 2, 2), datetime.date(2021, 1, 1)),
+            )
+            ec_exp.save() # save an expired contract
             self.employment_contract.append(ec)
+            self.employment_contract.append(ec_exp)
         xprint(" - EmploymentContract:", len(self.employment_contract))
 
         for contract in self.contracts:
@@ -478,3 +497,26 @@ class TestDBPupulator:
             tt.save()
             self.training_types.append(tt)
         xprint(" - TrainingType:", len(self.training_types))
+
+        for user in self.users:
+            ut = UserTraining(
+                user = user
+            )
+            ut.save()
+            self.user_trainings.append(ut)
+        xprint(" - UserTraining:", len(self.user_trainings))
+
+        for i in range(1, 20):
+            training = Training(
+                user_training = random.choice(self.user_trainings),
+                training_type = random.choice(self.training_types)
+            )
+            training.save()
+            self.trainings.append(training)
+        xprint(" - Training:", len(self.trainings))
+        
+        # add birth_date to users in user_info table
+        for user in self.users:
+            user.userinfo.birth_date = get_random_date(datetime.date(1970, 1, 1), datetime.date(2005, 1, 1))
+            user.userinfo.save()
+        xprint(" - Userinfo: birth_dates added")

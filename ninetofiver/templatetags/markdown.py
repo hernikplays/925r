@@ -10,6 +10,8 @@ register = template.Library()
 @register.filter
 def markdown(value):
     """Convert the given markdown value to HTML."""
+    if not value:
+        return value
     res = value
     res = md.markdown(res, extras=['tag-friendly'])
     res = mark_safe(res)

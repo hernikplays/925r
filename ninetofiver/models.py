@@ -298,6 +298,15 @@ class EmploymentContract(BaseModel):
     def __str__(self):
         """Return a string representation."""
         return '%s [%s, %s]' % (self.user, self.company, self.employment_contract_type)
+    
+    @property
+    def is_active(self):
+        if self.started_at <= datetime.date.today() and (
+            self.ended_at is None or self.ended_at >= datetime.date.today()
+        ):
+            return True
+        else:
+            return False
 
     def perform_additional_validation(self):
         """Perform additional validation on the object."""
@@ -1189,10 +1198,14 @@ class ActivityPerformance(Performance):
         if self.contract:
             # Ensure the performance type is valid for the contract
             allowed_types = list(self.contract.performance_types.all())
+            active = self.contract.active
 
             if allowed_types and (self.performance_type not in allowed_types):
                 raise ValidationError({'performance_type':
                                       _('The selected performance type is not valid for the selected contract')})
+            if not active:
+                raise ValidationError({'contract':
+                                      _('Contract is not active')})
 
     @property
     def normalized_duration(self):
